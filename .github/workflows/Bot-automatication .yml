@@ -9,10 +9,9 @@ on:
      - master
 
 jobs:
+# Запус, авторизация Docker Compose
   start_Docker_compos:
     runs-on: ubuntu-latest
-
-# Запус, авторизация Docker Compose
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -32,12 +31,24 @@ jobs:
         docker-compose push
 
 # Проверка статуса БД
-    - name: Check if database is running
-      run: |
-        docker-compose ps -q database | xargs docker inspect -f '{{.State.Running}}'
+  check_database:
+      runs-on: ubuntu-latest
+      needs: [start_Docker_compos]
+    
+      steps:
+      - name: Check if database is running
+        run: | 
+         docker-compose ps -q database | xargs docker inspect -f '{{.State.Running}}' 
         
 # Запуск main
-    - name: Run main application
-      run: docker-compose up main
+  start_main:
+      runs-on: ubuntu-latest
+      needs: [start_Docker_compos, check_database]
+
+      steps:
+        - name: Run main application
+          run : docker-compose up main
+      
+        
     
     
